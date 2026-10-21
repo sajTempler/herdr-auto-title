@@ -26,6 +26,7 @@ const (
 	EnvManual      = "HERDR_AUTO_TITLE_MANUAL_FILE"
 	EnvTranscript  = "HERDR_AUTO_TITLE_TRANSCRIPT"
 	EnvAgentName   = "HERDR_AUTO_TITLE_AGENT_NAME"
+	EnvDirectory   = "HERDR_AUTO_TITLE_DIRECTORY"
 	EnvPanes       = "HERDR_AUTO_TITLE_PANES"
 	EnvPreferAgent = "HERDR_AUTO_TITLE_PREFER_AGENT"
 	EnvPaneID      = "HERDR_AUTO_TITLE_PANE_ID"
@@ -74,6 +75,9 @@ type Config struct {
 	// what it is working on. Turned off, a pane whose agent has said nothing
 	// is named like any other pane in that directory.
 	ShowAgentName bool
+	// ShowDirectory puts the working directory in front of what a pane is
+	// doing. Turned off, the directory names only a pane doing nothing known.
+	ShowDirectory bool
 	// RenamePanes names each pane as well as its tab, which is what Herdr's
 	// goto panel lists a pane by. It costs a read per pane rather than per
 	// tab — see docs/architecture/poll-loop.md.
@@ -134,6 +138,7 @@ func LoadConfig() (Config, []string) {
 		ShowPosition:     true,
 		ManualPath:       ownPath(manualFile),
 		ReadSessions:     true,
+		ShowDirectory:    true,
 		RenamePanes:      true,
 		ReportWorkspaces: true,
 		ClaudeDirs:       homes,
@@ -150,6 +155,7 @@ func LoadConfig() (Config, []string) {
 	cfg.ShowPosition = fromEnv(&warnings, EnvPosition, cfg.ShowPosition, boolean)
 	cfg.ReadSessions = fromEnv(&warnings, EnvTranscript, cfg.ReadSessions, boolean)
 	cfg.ShowAgentName = fromEnv(&warnings, EnvAgentName, cfg.ShowAgentName, boolean)
+	cfg.ShowDirectory = fromEnv(&warnings, EnvDirectory, cfg.ShowDirectory, boolean)
 	cfg.RenamePanes = fromEnv(&warnings, EnvPanes, cfg.RenamePanes, boolean)
 	cfg.PreferAgentPane = fromEnv(&warnings, EnvPreferAgent, cfg.PreferAgentPane, boolean)
 	cfg.ShowPaneID = fromEnv(&warnings, EnvPaneID, cfg.ShowPaneID, boolean)

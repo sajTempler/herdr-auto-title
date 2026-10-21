@@ -130,6 +130,9 @@ type Options struct {
 	// way round so that the zero value keeps the name, which is what a resolver
 	// built without options wants.
 	HideAgentName bool
+	// HideDirectory leaves the working directory out of a title that says
+	// what its pane is doing. A remote host is the task, so it stays.
+	HideDirectory bool
 	// ShowHandle leads a pane label with the name the user gave its agent.
 	ShowHandle bool
 	// Home is the user's home directory, which names no project.
@@ -141,6 +144,7 @@ type Deterministic struct {
 	sources       []Source
 	maxLength     int
 	hideAgentName bool
+	hideDirectory bool
 	showHandle    bool
 }
 
@@ -165,6 +169,7 @@ func New(opts Options, sources ...Source) *Deterministic {
 		sources:       ordered,
 		maxLength:     opts.MaxLength,
 		hideAgentName: opts.HideAgentName,
+		hideDirectory: opts.HideDirectory,
 		showHandle:    opts.ShowHandle,
 	}
 }
@@ -212,7 +217,14 @@ func (d *Deterministic) ResolvePanes(tab state.TabState) []Decision {
 // nameUnder assembles what the chain found into a title, dropping what the
 // workspace row above it says and then what any nearer row does.
 func (d *Deterministic) nameUnder(found collected, workspace string, rows ...Parts) Decision {
-	parts := withoutAbove(withoutRepetition(found.parts), Parts{Context: workspace})
+	parts := withoutRepetition(found.parts)
+	// After the repetition check, so an activity that only echoed the
+	// directory cannot take the directory with it.
+	if d.hideDirectory && found.fromDir && parts.Activity != "" {
+		parts.Context = ""
+	}
+
+	parts = withoutAbove(parts, Parts{Context: workspace})
 
 	for _, row := range rows {
 		parts = withoutAbove(parts, row)
@@ -236,6 +248,9 @@ type collected struct {
 	parts      Parts
 	reason     string
 	confidence int
+	// fromDir marks a context read off the working directory rather than a
+	// remote host, which is the one HideDirectory may drop.
+	fromDir bool
 }
 
 // collect walks the sources in ladder order, filling each field with the first
@@ -298,6 +313,8 @@ func (c *collected) take(source Source, parts Parts) {
 
 	if c.parts.Context == "" && parts.Context != "" {
 		c.parts.Context = parts.Context
+
+		_, c.fromDir = source.(CWD)
 		if c.reason == "" {
 			c.credit(source)
 		}

@@ -35,7 +35,7 @@ func isolate(t *testing.T) {
 
 	names := []string{
 		EnvDebug, EnvPoll, EnvMaxLength, EnvBranchMax,
-		EnvPosition, EnvManual, EnvTranscript, EnvAgentName, EnvPanes,
+		EnvPosition, EnvManual, EnvTranscript, EnvAgentName, EnvDirectory, EnvPanes,
 		EnvPreferAgent, EnvPaneID, EnvAgentHandle, EnvWorkspaces, EnvWorkspaceMaxLength,
 		// Claude Code's own variable is cleared with ours: it now decides a
 		// Config field, so a developer's real home would otherwise be read.
@@ -104,6 +104,10 @@ func TestLoadConfigDefaults(t *testing.T) {
 		t.Error("agent names are shown by default")
 	}
 
+	if !cfg.ShowDirectory {
+		t.Error("directories are hidden by default")
+	}
+
 	if !cfg.RenamePanes {
 		t.Error("panes are not named by default")
 	}
@@ -146,6 +150,20 @@ func TestLoadConfigTurnsTheAgentNameOn(t *testing.T) {
 
 	if !cfg.ShowAgentName {
 		t.Error("agent names are hidden despite being enabled")
+	}
+}
+
+func TestLoadConfigTurnsTheDirectoryOff(t *testing.T) {
+	isolate(t)
+	t.Setenv(EnvDirectory, "false")
+
+	cfg, warnings := LoadConfig()
+	if len(warnings) != 0 {
+		t.Errorf("warnings = %v, want none", warnings)
+	}
+
+	if cfg.ShowDirectory {
+		t.Error("directories are shown despite being disabled")
 	}
 }
 

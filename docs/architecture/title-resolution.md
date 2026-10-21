@@ -714,6 +714,21 @@ activity, the repetition check sees the activity as it is. A tab whose agent
 titles its terminal after the project it was started in reads
 `dashboard › claude` rather than `dashboard › claude › dashboard`.
 
+## The directory is optional
+
+`HERDR_AUTO_TITLE_DIRECTORY=false` drops the context from any title that has
+an activity, when that context is the working directory. A workspace usually
+holds one project, so the directory repeats on every tab the way an agent's
+name does, and the activity is what tells two tabs apart.
+
+Unlike the agent's name, the directory stays where it is all the title has: a
+pane doing nothing known reads `dashboard`, not `Shell`, because the fallback
+would say less and say it on every such tab. The check runs after the
+repetition rules, so an activity that only echoed the directory, and was
+dropped for it, leaves the directory standing. A remote host is the task
+rather than where the user stands, so `ssh › prod-01` is never touched, and
+the branch stays: `BRANCH_MAX=0` is the switch for that.
+
 ## The position is not a part of the title
 
 Every title carries the tab's place in its workspace in front of it, which is
